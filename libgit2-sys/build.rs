@@ -55,7 +55,13 @@ fn main() {
     // compiled apparently and have internal #define's to make sure they're
     // compiled correctly.
     add_c_files(&mut cfg, "libgit2/src/libgit2/transports");
-    add_c_files(&mut cfg, "libgit2/src/libgit2/streams");
+
+    if target.contains("wasm32-wasi") {
+        cfg.file("libgit2/src/libgit2/streams/openssl.c");
+        cfg.file("libgit2/src/libgit2/streams/mbedtls.c");
+    } else {
+        add_c_files(&mut cfg, "libgit2/src/libgit2/streams");
+    }
 
     // Always use bundled http-parser for now
     cfg.include("libgit2/deps/http-parser")
@@ -112,7 +118,17 @@ fn main() {
 
     features.push_str("#ifndef INCLUDE_features_h\n");
     features.push_str("#define INCLUDE_features_h\n");
-    features.push_str("#define GIT_THREADS 1\n");
+
+    if target.contains("wasm32-wasi") {
+        cfg.include("wasm32-wasi-custom/include");
+        cfg.file("wasm32-wasi-custom/stubs/streams.c");
+        cfg.file("wasm32-wasi-custom/stubs/unistd.c");
+        cfg.file("wasm32-wasi-custom/stubs/pwd.c");
+        features.push_str("#define NO_MMAP 1\n");
+    } else {
+        features.push_str("#define GIT_THREADS 1\n");
+    }
+
     features.push_str("#define GIT_TRACE 1\n");
 
     if !target.contains("android") {

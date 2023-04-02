@@ -88,6 +88,13 @@ pub fn bytes2path(b: &[u8]) -> &Path {
     use std::os::unix::prelude::*;
     Path::new(OsStr::from_bytes(b))
 }
+
+#[cfg(target_arch = "wasm32")]
+pub fn bytes2path(b: &[u8]) -> &Path {
+    use std::os::wasi::prelude::*;
+    Path::new(OsStr::from_bytes(b))
+}
+
 #[cfg(windows)]
 pub fn bytes2path(b: &[u8]) -> &Path {
     use std::str;
@@ -162,6 +169,12 @@ impl IntoCString for OsString {
                 "only valid unicode paths are accepted on windows",
             )),
         }
+    }
+    #[cfg(target_arch = "wasm32")]
+    fn into_c_string(self) -> Result<CString, Error> {
+        use std::os::wasi::prelude::*;
+        let s: &OsStr = self.as_ref();
+        Ok(CString::new(s.as_bytes())?)
     }
 }
 
