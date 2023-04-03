@@ -8,6 +8,7 @@ fn main() {
     let https = env::var("CARGO_FEATURE_HTTPS").is_ok();
     let ssh = env::var("CARGO_FEATURE_SSH").is_ok();
     let vendored = env::var("CARGO_FEATURE_VENDORED").is_ok();
+    let vendored_zlib = env::var("CARGO_FEATURE_VENDORED_ZLIB").is_ok();
     let zlib_ng_compat = env::var("CARGO_FEATURE_ZLIB_NG_COMPAT").is_ok();
 
     // To use zlib-ng in zlib-compat mode, we have to build libgit2 ourselves.
@@ -59,6 +60,11 @@ fn main() {
     if target.contains("wasm32-wasi") {
         cfg.file("libgit2/src/libgit2/streams/openssl.c");
         cfg.file("libgit2/src/libgit2/streams/mbedtls.c");
+
+        cfg.include("wasm32-wasi-custom/include")
+            .file("wasm32-wasi-custom/stubs/streams.c")
+            .file("wasm32-wasi-custom/stubs/unistd.c")
+            .file("wasm32-wasi-custom/stubs/pwd.c");
     } else {
         add_c_files(&mut cfg, "libgit2/src/libgit2/streams");
     }
@@ -66,6 +72,12 @@ fn main() {
     // Always use bundled http-parser for now
     cfg.include("libgit2/deps/http-parser")
         .file("libgit2/deps/http-parser/http_parser.c");
+
+    if vendored_zlib {
+        // use the bundled zlib from libgit2
+        cfg.include("libgit2/deps/zlib");
+        add_c_files(&mut cfg, "libgit2/deps/zlib");
+    }
 
     // Use the included PCRE regex backend.
     //
@@ -120,10 +132,6 @@ fn main() {
     features.push_str("#define INCLUDE_features_h\n");
 
     if target.contains("wasm32-wasi") {
-        cfg.include("wasm32-wasi-custom/include");
-        cfg.file("wasm32-wasi-custom/stubs/streams.c");
-        cfg.file("wasm32-wasi-custom/stubs/unistd.c");
-        cfg.file("wasm32-wasi-custom/stubs/pwd.c");
         features.push_str("#define NO_MMAP 1\n");
     } else {
         features.push_str("#define GIT_THREADS 1\n");
