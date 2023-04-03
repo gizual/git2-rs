@@ -1,4 +1,15 @@
-# git2-rs
+# git2-rs (for wasm32-wasi)
+
+> :warning: This is currently **just a proof of concept** to use git2-rs and libgit2 while targetting wasm32-wasi.
+
+To compile your library to `wasm32-wasi` you will need a local [wasi-sdk](https://github.com/WebAssembly/wasi-sdk) setup.
+
+```toml
+[dependencies]
+git2 = { git = "https://github.com/gizual/git2-rs", default-features = false, branch = "wasm32-wasi-support", features = ["vendored-zlib"] }
+```
+
+---
 
 [Documentation](https://docs.rs/git2)
 
