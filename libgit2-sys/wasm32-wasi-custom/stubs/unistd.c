@@ -23,7 +23,6 @@ char *realpath(const char *path, char *resolved) {
       return 0;
   }
   strcpy(resolved, path);
-  printf("realpath %s\n", path);
   return resolved;
 }
 
@@ -31,6 +30,5 @@ char *realpath(const char *path, char *resolved) {
 #include <sys/stat.h>
 
 int chmod(const char *path, mode_t mode) {
-  printf("chmod %s\n", path);
   return 0;
 };
