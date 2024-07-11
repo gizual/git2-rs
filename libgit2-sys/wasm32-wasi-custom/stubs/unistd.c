@@ -29,6 +29,3 @@ char *realpath(const char *path, char *resolved) {
 #include <stdio.h>
 #include <sys/stat.h>
 
-int chmod(const char *path, mode_t mode) {
-  return 0;
-};
